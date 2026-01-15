@@ -1,8 +1,19 @@
 import { useState, useCallback } from 'react';
 import { Message, Quiz, Flashcard, MindMapNode } from '@/types/study';
-import { supabase } from '@/integrations/supabase/client';
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/study-buddy-chat`;
+
+interface PodcastLesson {
+  title: string;
+  content: string;
+  duration: string;
+}
+
+interface WritingPrompt {
+  topic: string;
+  prompt: string;
+  hints: string[];
+}
 
 export const useStudyBuddy = () => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -211,6 +222,170 @@ export const useStudyBuddy = () => {
     }
   }, []);
 
+  const generateInfographic = useCallback(async (topic: string): Promise<string | null> => {
+    setIsLoading(true);
+    try {
+      const resp = await fetch(CHAT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: `Create an infographic summary about: ${topic}` }],
+          action: 'generate_infographic',
+          topic,
+        }),
+      });
+
+      if (!resp.ok) throw new Error('Failed to generate infographic');
+
+      const data = await resp.json();
+      const content = data.choices?.[0]?.message?.content;
+      return content || null;
+    } catch (error) {
+      console.error('Infographic generation error:', error);
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const generatePodcast = useCallback(async (topic: string): Promise<PodcastLesson | null> => {
+    setIsLoading(true);
+    try {
+      const resp = await fetch(CHAT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: `Create a podcast-style lesson about: ${topic}` }],
+          action: 'generate_podcast',
+          topic,
+        }),
+      });
+
+      if (!resp.ok) throw new Error('Failed to generate podcast');
+
+      const data = await resp.json();
+      const content = data.choices?.[0]?.message?.content;
+      
+      if (content) {
+        try {
+          return JSON.parse(content) as PodcastLesson;
+        } catch {
+          return { title: topic, content, duration: '5 min' };
+        }
+      }
+      return null;
+    } catch (error) {
+      console.error('Podcast generation error:', error);
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const summarizeText = useCallback(async (text: string): Promise<string | null> => {
+    setIsLoading(true);
+    try {
+      const resp = await fetch(CHAT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: `Summarize the following text concisely:\n\n${text}` }],
+          action: 'summarize',
+        }),
+      });
+
+      if (!resp.ok) throw new Error('Failed to summarize');
+
+      const data = await resp.json();
+      return data.choices?.[0]?.message?.content || null;
+    } catch (error) {
+      console.error('Summarization error:', error);
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const generateWritingPrompt = useCallback(async (topic: string): Promise<WritingPrompt | null> => {
+    setIsLoading(true);
+    try {
+      const resp = await fetch(CHAT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: `Create a writing prompt about: ${topic}` }],
+          action: 'generate_writing_prompt',
+          topic,
+        }),
+      });
+
+      if (!resp.ok) throw new Error('Failed to generate writing prompt');
+
+      const data = await resp.json();
+      const content = data.choices?.[0]?.message?.content;
+      
+      if (content) {
+        try {
+          return JSON.parse(content) as WritingPrompt;
+        } catch {
+          return { 
+            topic, 
+            prompt: content, 
+            hints: ['Think about the key concepts', 'Use examples to illustrate', 'Summarize your understanding'] 
+          };
+        }
+      }
+      return null;
+    } catch (error) {
+      console.error('Writing prompt generation error:', error);
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const evaluateWriting = useCallback(async (prompt: string, response: string): Promise<string | null> => {
+    setIsLoading(true);
+    try {
+      const resp = await fetch(CHAT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          messages: [{ 
+            role: 'user', 
+            content: `Evaluate this response to the writing prompt.\n\nPrompt: ${prompt}\n\nResponse: ${response}` 
+          }],
+          action: 'evaluate_writing',
+        }),
+      });
+
+      if (!resp.ok) throw new Error('Failed to evaluate');
+
+      const data = await resp.json();
+      return data.choices?.[0]?.message?.content || null;
+    } catch (error) {
+      console.error('Evaluation error:', error);
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   const clearMessages = useCallback(() => {
     setMessages([]);
   }, []);
@@ -223,6 +398,11 @@ export const useStudyBuddy = () => {
     generateFlashcards,
     generateMindMap,
     generateNotes,
+    generateInfographic,
+    generatePodcast,
+    summarizeText,
+    generateWritingPrompt,
+    evaluateWriting,
     clearMessages,
   };
 };

@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Send, Mic, MicOff, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -13,7 +15,10 @@ interface ChatInputProps {
 
 export const ChatInput = ({ onSend, isLoading, placeholder = "Ask me anything about AI, ML, NLP..." }: ChatInputProps) => {
   const [input, setInput] = useState('');
-  const { isRecording, startRecording, stopRecording } = useAudioRecorder();
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const { isRecording, audioBlob, startRecording, stopRecording, clearRecording } = useAudioRecorder();
+  const { toast } = useToast();
+  const hasTranscribedRef = useRef(false);
 
   const handleSend = () => {
     if (input.trim() && !isLoading) {
@@ -29,16 +34,70 @@ export const ChatInput = ({ onSend, isLoading, placeholder = "Ask me anything ab
     }
   };
 
-  const toggleRecording = async () => {
+  const transcribeAudio = async (blob: Blob) => {
+    if (hasTranscribedRef.current) return;
+    hasTranscribedRef.current = true;
+    setIsTranscribing(true);
+    
+    try {
+      // Convert blob to base64
+      const reader = new FileReader();
+      const base64Promise = new Promise<string>((resolve, reject) => {
+        reader.onloadend = () => {
+          const base64 = (reader.result as string).split(',')[1];
+          resolve(base64);
+        };
+        reader.onerror = reject;
+      });
+      reader.readAsDataURL(blob);
+      const base64Audio = await base64Promise;
+
+      const { data, error } = await supabase.functions.invoke('transcribe-audio', {
+        body: { audio: base64Audio },
+      });
+
+      if (error) throw error;
+
+      if (data?.text) {
+        setInput((prev) => prev + (prev ? ' ' : '') + data.text);
+        toast({ title: 'Audio transcribed!', description: data.text.substring(0, 50) + '...' });
+      }
+    } catch (error) {
+      console.error('Transcription error:', error);
+      toast({ 
+        title: 'Transcription failed', 
+        description: 'Could not transcribe audio. Please try again.',
+        variant: 'destructive' 
+      });
+    } finally {
+      setIsTranscribing(false);
+      clearRecording();
+      hasTranscribedRef.current = false;
+    }
+  };
+
+  // Effect to transcribe when audioBlob is available
+  useEffect(() => {
+    if (audioBlob && !isTranscribing && !isRecording) {
+      transcribeAudio(audioBlob);
+    }
+  }, [audioBlob, isRecording]);
+
+  const handleToggleRecording = async () => {
     if (isRecording) {
       stopRecording();
-      // For now, we'll show a toast that speech-to-text is coming soon
-      // In production, you'd integrate with a speech-to-text API
     } else {
       try {
+        hasTranscribedRef.current = false;
+        clearRecording();
         await startRecording();
       } catch (error) {
         console.error('Failed to start recording:', error);
+        toast({
+          title: 'Microphone access denied',
+          description: 'Please allow microphone access to use voice input.',
+          variant: 'destructive'
+        });
       }
     }
   };
@@ -48,13 +107,21 @@ export const ChatInput = ({ onSend, isLoading, placeholder = "Ask me anything ab
       <Button
         variant="outline"
         size="icon"
-        onClick={toggleRecording}
+        onClick={handleToggleRecording}
+        disabled={isTranscribing}
         className={cn(
           'flex-shrink-0',
-          isRecording && 'bg-destructive text-destructive-foreground recording-pulse'
+          isRecording && 'bg-destructive text-destructive-foreground recording-pulse',
+          isTranscribing && 'animate-pulse'
         )}
       >
-        {isRecording ? <MicOff size={18} /> : <Mic size={18} />}
+        {isTranscribing ? (
+          <Loader2 size={18} className="animate-spin" />
+        ) : isRecording ? (
+          <MicOff size={18} />
+        ) : (
+          <Mic size={18} />
+        )}
       </Button>
       
       <Textarea
