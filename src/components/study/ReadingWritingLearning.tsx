@@ -15,7 +15,11 @@ interface WritingPrompt {
   hints: string[];
 }
 
-export const ReadingWritingLearning = () => {
+interface ReadingWritingLearningProps {
+  language?: string;
+}
+
+export const ReadingWritingLearning = ({ language = 'en' }: ReadingWritingLearningProps) => {
   const [topic, setTopic] = useState('');
   const [noteContent, setNoteContent] = useState('');
   const [noteTitle, setNoteTitle] = useState('');
@@ -25,7 +29,7 @@ export const ReadingWritingLearning = () => {
   const [userResponse, setUserResponse] = useState('');
   const [feedback, setFeedback] = useState('');
   
-  const { isLoading, summarizeText, generateWritingPrompt, evaluateWriting, generateNotes } = useStudyBuddy();
+  const { isLoading, summarizeText, generateWritingPrompt, evaluateWriting, generateNotes } = useStudyBuddy(language);
   const { toast } = useToast();
 
   const handleSummarize = async () => {

@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Message, Quiz, Flashcard, MindMapNode } from '@/types/study';
+import { getLanguagePrompt } from '@/components/study/LanguageSelector';
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/study-buddy-chat`;
 
@@ -15,9 +16,11 @@ interface WritingPrompt {
   hints: string[];
 }
 
-export const useStudyBuddy = () => {
+export const useStudyBuddy = (language: string = 'en') => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  const languagePrompt = getLanguagePrompt(language);
 
   const streamChat = useCallback(async (userMessage: string) => {
     const userMsg: Message = { role: 'user', content: userMessage };
@@ -36,6 +39,8 @@ export const useStudyBuddy = () => {
         body: JSON.stringify({
           messages: [...messages, userMsg],
           action: 'chat',
+          language,
+          languagePrompt,
         }),
       });
 
@@ -89,7 +94,7 @@ export const useStudyBuddy = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [messages]);
+  }, [messages, language, languagePrompt]);
 
   const generateQuiz = useCallback(async (topic: string): Promise<Quiz | null> => {
     setIsLoading(true);
@@ -104,6 +109,8 @@ export const useStudyBuddy = () => {
           messages: [{ role: 'user', content: `Generate a quiz about: ${topic}` }],
           action: 'generate_quiz',
           topic,
+          language,
+          languagePrompt,
         }),
       });
 
@@ -123,7 +130,7 @@ export const useStudyBuddy = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [language, languagePrompt]);
 
   const generateFlashcards = useCallback(async (topic: string): Promise<Flashcard[] | null> => {
     setIsLoading(true);
@@ -138,6 +145,8 @@ export const useStudyBuddy = () => {
           messages: [{ role: 'user', content: `Generate flashcards about: ${topic}` }],
           action: 'generate_flashcards',
           topic,
+          language,
+          languagePrompt,
         }),
       });
 
@@ -157,7 +166,7 @@ export const useStudyBuddy = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [language, languagePrompt]);
 
   const generateMindMap = useCallback(async (topic: string): Promise<{ title: string; nodes: MindMapNode[] } | null> => {
     setIsLoading(true);
@@ -172,6 +181,8 @@ export const useStudyBuddy = () => {
           messages: [{ role: 'user', content: `Generate a mind map about: ${topic}` }],
           action: 'generate_mindmap',
           topic,
+          language,
+          languagePrompt,
         }),
       });
 
@@ -191,7 +202,7 @@ export const useStudyBuddy = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [language, languagePrompt]);
 
   const generateNotes = useCallback(async (topic: string): Promise<string | null> => {
     setIsLoading(true);
@@ -206,6 +217,8 @@ export const useStudyBuddy = () => {
           messages: [{ role: 'user', content: `Generate comprehensive study notes about: ${topic}` }],
           action: 'generate_notes',
           topic,
+          language,
+          languagePrompt,
         }),
       });
 
@@ -220,7 +233,7 @@ export const useStudyBuddy = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [language, languagePrompt]);
 
   const generateInfographic = useCallback(async (topic: string): Promise<string | null> => {
     setIsLoading(true);
@@ -235,6 +248,8 @@ export const useStudyBuddy = () => {
           messages: [{ role: 'user', content: `Create an infographic summary about: ${topic}` }],
           action: 'generate_infographic',
           topic,
+          language,
+          languagePrompt,
         }),
       });
 
@@ -249,7 +264,7 @@ export const useStudyBuddy = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [language, languagePrompt]);
 
   const generatePodcast = useCallback(async (topic: string): Promise<PodcastLesson | null> => {
     setIsLoading(true);
@@ -264,6 +279,8 @@ export const useStudyBuddy = () => {
           messages: [{ role: 'user', content: `Create a podcast-style lesson about: ${topic}` }],
           action: 'generate_podcast',
           topic,
+          language,
+          languagePrompt,
         }),
       });
 
@@ -286,7 +303,7 @@ export const useStudyBuddy = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [language, languagePrompt]);
 
   const summarizeText = useCallback(async (text: string): Promise<string | null> => {
     setIsLoading(true);
@@ -300,6 +317,8 @@ export const useStudyBuddy = () => {
         body: JSON.stringify({
           messages: [{ role: 'user', content: `Summarize the following text concisely:\n\n${text}` }],
           action: 'summarize',
+          language,
+          languagePrompt,
         }),
       });
 
@@ -313,7 +332,7 @@ export const useStudyBuddy = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [language, languagePrompt]);
 
   const generateWritingPrompt = useCallback(async (topic: string): Promise<WritingPrompt | null> => {
     setIsLoading(true);
@@ -328,6 +347,8 @@ export const useStudyBuddy = () => {
           messages: [{ role: 'user', content: `Create a writing prompt about: ${topic}` }],
           action: 'generate_writing_prompt',
           topic,
+          language,
+          languagePrompt,
         }),
       });
 
@@ -354,7 +375,7 @@ export const useStudyBuddy = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [language, languagePrompt]);
 
   const evaluateWriting = useCallback(async (prompt: string, response: string): Promise<string | null> => {
     setIsLoading(true);
@@ -371,6 +392,8 @@ export const useStudyBuddy = () => {
             content: `Evaluate this response to the writing prompt.\n\nPrompt: ${prompt}\n\nResponse: ${response}` 
           }],
           action: 'evaluate_writing',
+          language,
+          languagePrompt,
         }),
       });
 
@@ -384,7 +407,7 @@ export const useStudyBuddy = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [language, languagePrompt]);
 
   const clearMessages = useCallback(() => {
     setMessages([]);

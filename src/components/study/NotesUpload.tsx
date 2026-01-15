@@ -139,12 +139,12 @@ export const NotesUpload = ({ userId, onUpload }: NotesUploadProps) => {
         </div>
 
         <div>
-          <Label htmlFor="topic">Topic (AI-related)</Label>
+          <Label htmlFor="topic">Topic</Label>
           <Input
             id="topic"
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
-            placeholder="e.g., Machine Learning, NLP, Neural Networks"
+            placeholder="e.g., Biology, History, Languages, Life Skills"
           />
         </div>
 

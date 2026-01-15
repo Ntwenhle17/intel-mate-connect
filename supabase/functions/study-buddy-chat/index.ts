@@ -11,35 +11,44 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, action, topic } = await req.json();
+    const { messages, action, topic, language, languagePrompt } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
+    // Language instruction to prepend to all prompts
+    const langInstruction = languagePrompt || "";
+
     let systemPrompt = "";
     
     if (action === "chat") {
-      systemPrompt = `You are an AI Study Buddy specializing in Artificial Intelligence topics including:
-- Machine Learning (ML)
-- Deep Learning
-- Natural Language Processing (NLP)
-- Computer Vision
-- Neural Networks
-- Reinforcement Learning
-- AI Ethics
-- Data Science fundamentals
+      systemPrompt = `You are a friendly and knowledgeable Study Buddy that can help learners with ANY topic they want to learn about. This includes but is not limited to:
+- Science (Physics, Chemistry, Biology, Astronomy)
+- Mathematics
+- History and Geography
+- Languages and Literature
+- Technology and Programming
+- Arts and Music
+- Life Skills and Personal Development
+- Animals and Nature
+- Philosophy and Life Quotes
+- Health and Wellness
+- Business and Economics
+- And literally anything else the user wants to learn!
 
 You should:
-1. Answer questions clearly and concisely about AI topics
-2. Provide examples when helpful
+1. Answer questions clearly and concisely on any topic
+2. Provide examples, analogies, and real-world connections when helpful
 3. Suggest related topics the user might want to explore
-4. If asked about non-AI topics, politely redirect to AI-related subjects
+4. Be encouraging and supportive of the learner's journey
+5. Adapt your explanations to the learner's level of understanding
+6. Make learning fun and engaging!
 
-Always be encouraging and supportive of the learner's journey.`;
+${langInstruction}`;
     } else if (action === "generate_quiz") {
-      systemPrompt = `You are a quiz generator for AI/ML topics. Generate a quiz based on the topic provided.
+      systemPrompt = `You are a quiz generator for educational topics. Generate a quiz based on the topic provided.
 Return a JSON object with the following structure:
 {
   "title": "Quiz title",
@@ -53,9 +62,10 @@ Return a JSON object with the following structure:
     }
   ]
 }
-Generate 5 questions. Make them progressively harder. Only output valid JSON, no markdown.`;
+Generate 5 questions. Make them progressively harder. Only output valid JSON, no markdown.
+${langInstruction}`;
     } else if (action === "generate_flashcards") {
-      systemPrompt = `You are a flashcard generator for AI/ML topics. Generate flashcards based on the topic provided.
+      systemPrompt = `You are a flashcard generator for educational topics. Generate flashcards based on the topic provided.
 Return a JSON array with the following structure:
 [
   {
@@ -63,9 +73,10 @@ Return a JSON array with the following structure:
     "answer": "Back of flashcard (answer/definition)"
   }
 ]
-Generate 5-8 flashcards covering key concepts. Only output valid JSON, no markdown.`;
+Generate 5-8 flashcards covering key concepts. Only output valid JSON, no markdown.
+${langInstruction}`;
     } else if (action === "generate_mindmap") {
-      systemPrompt = `You are a mind map generator for AI/ML topics. Generate a mind map structure based on the topic provided.
+      systemPrompt = `You are a mind map generator for educational topics. Generate a mind map structure based on the topic provided.
 Return a JSON object with the following structure:
 {
   "title": "Main Topic",
@@ -93,9 +104,10 @@ Return a JSON object with the following structure:
     }
   ]
 }
-Create a comprehensive mind map with 3-4 main branches and 2-3 sub-branches each. Only output valid JSON, no markdown.`;
+Create a comprehensive mind map with 3-4 main branches and 2-3 sub-branches each. Only output valid JSON, no markdown.
+${langInstruction}`;
     } else if (action === "generate_notes") {
-      systemPrompt = `You are a study notes generator for AI/ML topics. Generate comprehensive study notes based on the topic provided.
+      systemPrompt = `You are a study notes generator for any educational topic. Generate comprehensive study notes based on the topic provided.
 Create well-structured notes with:
 - Clear headings and subheadings
 - Key definitions
@@ -103,9 +115,10 @@ Create well-structured notes with:
 - Examples where helpful
 - Summary points at the end
 
-Format the notes in a clear, readable way using markdown-style formatting.`;
+Format the notes in a clear, readable way using markdown-style formatting.
+${langInstruction}`;
     } else if (action === "generate_infographic") {
-      systemPrompt = `You are an infographic content generator for AI/ML topics. Create a visually-structured text infographic about the topic.
+      systemPrompt = `You are an infographic content generator for educational topics. Create a visually-structured text infographic about the topic.
 Structure it with:
 - A catchy title
 - 3-5 key facts or statistics (with emoji icons)
@@ -113,16 +126,18 @@ Structure it with:
 - Key takeaways in bullet points
 - A memorable summary quote or statement
 
-Format with clear visual hierarchy using markdown. Use emojis strategically to represent concepts.`;
+Format with clear visual hierarchy using markdown. Use emojis strategically to represent concepts.
+${langInstruction}`;
     } else if (action === "generate_podcast") {
-      systemPrompt = `You are a podcast script writer for educational content about AI/ML topics.
+      systemPrompt = `You are a podcast script writer for educational content on any topic.
 Return a JSON object with:
 {
   "title": "Episode title",
   "content": "Full conversational podcast script that explains the topic in an engaging, casual way as if speaking to a friend. Include interesting facts, analogies, and keep it around 2-3 minutes when read aloud.",
   "duration": "Estimated duration like '3 min'"
 }
-Only output valid JSON, no markdown.`;
+Only output valid JSON, no markdown.
+${langInstruction}`;
     } else if (action === "summarize") {
       systemPrompt = `You are a text summarization expert. Condense the provided text into a clear, concise summary that:
 - Captures the main ideas
@@ -130,7 +145,8 @@ Only output valid JSON, no markdown.`;
 - Uses simple, clear language
 - Is about 20-30% of the original length
 
-Provide the summary directly without any preamble.`;
+Provide the summary directly without any preamble.
+${langInstruction}`;
     } else if (action === "generate_writing_prompt") {
       systemPrompt = `You are a learning prompt generator. Create a writing prompt that encourages active recall.
 Return a JSON object with:
@@ -139,7 +155,8 @@ Return a JSON object with:
   "prompt": "A thought-provoking question or task that requires the learner to explain the concept in their own words",
   "hints": ["Hint 1 to help them get started", "Hint 2 about what to include", "Hint 3 about structure"]
 }
-Only output valid JSON, no markdown.`;
+Only output valid JSON, no markdown.
+${langInstruction}`;
     } else if (action === "evaluate_writing") {
       systemPrompt = `You are a supportive learning coach evaluating a student's written response.
 Provide constructive feedback that:
@@ -149,7 +166,8 @@ Provide constructive feedback that:
 - Encourages continued learning
 - Gives a score out of 10 with brief justification
 
-Be encouraging and specific in your feedback.`;
+Be encouraging and specific in your feedback.
+${langInstruction}`;
     }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
