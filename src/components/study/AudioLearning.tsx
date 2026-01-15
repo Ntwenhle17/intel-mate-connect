@@ -24,7 +24,11 @@ interface PodcastLesson {
   duration: string;
 }
 
-export const AudioLearning = () => {
+interface AudioLearningProps {
+  language?: string;
+}
+
+export const AudioLearning = ({ language = 'en' }: AudioLearningProps) => {
   const [topic, setTopic] = useState('');
   const [textToSpeak, setTextToSpeak] = useState('');
   const [isPlaying, setIsPlaying] = useState(false);
@@ -34,7 +38,7 @@ export const AudioLearning = () => {
   const [pronunciationWord, setPronunciationWord] = useState('');
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   
-  const { isLoading, generatePodcast } = useStudyBuddy();
+  const { isLoading, generatePodcast } = useStudyBuddy(language);
   const { toast } = useToast();
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 

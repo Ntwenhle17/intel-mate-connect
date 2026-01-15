@@ -23,7 +23,11 @@ interface HighlightedText {
   label: string;
 }
 
-export const VisualLearning = () => {
+interface VisualLearningProps {
+  language?: string;
+}
+
+export const VisualLearning = ({ language = 'en' }: VisualLearningProps) => {
   const [topic, setTopic] = useState('');
   const [mindMap, setMindMap] = useState<{ title: string; nodes: MindMapNode[] } | null>(null);
   const [infographic, setInfographic] = useState<string | null>(null);
@@ -31,7 +35,7 @@ export const VisualLearning = () => {
   const [highlightText, setHighlightText] = useState('');
   const [selectedColor, setSelectedColor] = useState(COLOR_TAGS[0]);
   
-  const { isLoading, generateMindMap, generateInfographic } = useStudyBuddy();
+  const { isLoading, generateMindMap, generateInfographic } = useStudyBuddy(language);
 
   const handleGenerateMindMap = async () => {
     if (!topic.trim()) return;

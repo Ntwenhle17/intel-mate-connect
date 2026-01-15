@@ -15,20 +15,23 @@ import { NotesList } from '@/components/study/NotesList';
 import { VisualLearning } from '@/components/study/VisualLearning';
 import { AudioLearning } from '@/components/study/AudioLearning';
 import { ReadingWritingLearning } from '@/components/study/ReadingWritingLearning';
+import { LanguageSelector, SOUTH_AFRICAN_LANGUAGES } from '@/components/study/LanguageSelector';
 import { useStudyBuddy } from '@/hooks/useStudyBuddy';
 import { Note } from '@/types/study';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
 
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [notes, setNotes] = useState<Note[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState('en');
   const navigate = useNavigate();
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { messages, isLoading, streamChat } = useStudyBuddy();
+  const { messages, isLoading, streamChat } = useStudyBuddy(selectedLanguage);
+
+  const selectedLangName = SOUTH_AFRICAN_LANGUAGES.find(l => l.code === selectedLanguage)?.nativeName || 'English';
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
@@ -87,11 +90,20 @@ const Index = () => {
               {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
             </Button>
             <Brain className="h-8 w-8 text-primary" />
-            <span className="text-xl font-bold">AI Study Buddy</span>
+            <span className="text-xl font-bold">Study Buddy</span>
           </div>
-          <Button variant="ghost" size="sm" onClick={handleSignOut}>
-            <LogOut size={16} className="mr-2" /> Sign Out
-          </Button>
+          <div className="flex items-center gap-3">
+            <div className="w-48 hidden sm:block">
+              <LanguageSelector value={selectedLanguage} onChange={setSelectedLanguage} />
+            </div>
+            <Button variant="ghost" size="sm" onClick={handleSignOut}>
+              <LogOut size={16} className="mr-2" /> Sign Out
+            </Button>
+          </div>
+        </div>
+        {/* Mobile language selector */}
+        <div className="sm:hidden px-4 pb-3">
+          <LanguageSelector value={selectedLanguage} onChange={setSelectedLanguage} />
         </div>
       </header>
 
@@ -107,18 +119,21 @@ const Index = () => {
           </TabsList>
 
           <TabsContent value="chat">
-            <Card className="h-[calc(100vh-220px)] flex flex-col">
+            <Card className="h-[calc(100vh-260px)] sm:h-[calc(100vh-220px)] flex flex-col">
               <div className="p-4 border-b">
-                <h2 className="font-semibold">Chat with AI Study Buddy</h2>
-                <p className="text-sm text-muted-foreground">Ask questions about AI, ML, NLP, and more!</p>
+                <h2 className="font-semibold">Chat with Study Buddy</h2>
+                <p className="text-sm text-muted-foreground">
+                  Ask about anything — science, history, languages, life quotes, and more! 
+                  <span className="ml-1 text-primary">({selectedLangName})</span>
+                </p>
               </div>
               <ScrollArea className="flex-1 p-4">
                 <div className="space-y-4">
                   {messages.length === 0 && (
                     <div className="text-center py-12 text-muted-foreground">
                       <Brain className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                      <p>Start a conversation about AI topics!</p>
-                      <p className="text-sm mt-2">Try asking about Machine Learning, Neural Networks, or NLP</p>
+                      <p>Start a conversation about any topic!</p>
+                      <p className="text-sm mt-2">Ask about science, animals, history, life quotes, or anything you want to learn!</p>
                     </div>
                   )}
                   {messages.map((msg, i) => <ChatMessage key={i} message={msg} />)}
@@ -130,19 +145,19 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="study">
-            <TopicGenerator />
+            <TopicGenerator language={selectedLanguage} />
           </TabsContent>
 
           <TabsContent value="visual">
-            <VisualLearning />
+            <VisualLearning language={selectedLanguage} />
           </TabsContent>
 
           <TabsContent value="audio">
-            <AudioLearning />
+            <AudioLearning language={selectedLanguage} />
           </TabsContent>
 
           <TabsContent value="writing">
-            <ReadingWritingLearning />
+            <ReadingWritingLearning language={selectedLanguage} />
           </TabsContent>
 
           <TabsContent value="notes">

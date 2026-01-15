@@ -10,25 +10,29 @@ import { QuizComponent } from './QuizComponent';
 import { MindMapView } from './MindMapView';
 import { Flashcard, Quiz, MindMapNode } from '@/types/study';
 
-const AI_TOPICS = [
-  'Machine Learning',
-  'Deep Learning',
-  'Natural Language Processing',
-  'Neural Networks',
-  'Computer Vision',
-  'Reinforcement Learning',
-  'Transformers',
-  'GANs',
+const QUICK_TOPICS = [
+  'Photosynthesis',
+  'World War II',
+  'Solar System',
+  'African Wildlife',
+  'Climate Change',
+  'Human Body',
+  'Mathematics',
+  'Life Skills',
 ];
 
-export const TopicGenerator = () => {
+interface TopicGeneratorProps {
+  language?: string;
+}
+
+export const TopicGenerator = ({ language = 'en' }: TopicGeneratorProps) => {
   const [topic, setTopic] = useState('');
   const [activeTab, setActiveTab] = useState('quiz');
   const [generatedQuiz, setGeneratedQuiz] = useState<Quiz | null>(null);
   const [generatedFlashcards, setGeneratedFlashcards] = useState<Flashcard[]>([]);
   const [generatedMindMap, setGeneratedMindMap] = useState<{ title: string; nodes: MindMapNode[] } | null>(null);
   
-  const { isLoading, generateQuiz, generateFlashcards, generateMindMap } = useStudyBuddy();
+  const { isLoading, generateQuiz, generateFlashcards, generateMindMap } = useStudyBuddy(language);
 
   const handleGenerate = async () => {
     if (!topic.trim()) return;
@@ -64,7 +68,7 @@ export const TopicGenerator = () => {
           <Input
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
-            placeholder="Enter an AI topic (e.g., Neural Networks, NLP...)"
+            placeholder="Enter any topic (e.g., Planets, History, Animals...)"
             onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
           />
           <Button onClick={handleGenerate} disabled={isLoading || !topic.trim()}>
@@ -78,7 +82,7 @@ export const TopicGenerator = () => {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          {AI_TOPICS.map((t) => (
+          {QUICK_TOPICS.map((t) => (
             <Button
               key={t}
               variant="outline"
