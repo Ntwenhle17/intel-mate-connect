@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { Brain, MessageSquare, BookOpen, Upload, LogOut, Menu, X } from 'lucide-react';
+import { Brain, MessageSquare, BookOpen, Upload, LogOut, Menu, X, Eye, Headphones, PenTool } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -12,6 +12,9 @@ import { ChatInput } from '@/components/study/ChatInput';
 import { TopicGenerator } from '@/components/study/TopicGenerator';
 import { NotesUpload } from '@/components/study/NotesUpload';
 import { NotesList } from '@/components/study/NotesList';
+import { VisualLearning } from '@/components/study/VisualLearning';
+import { AudioLearning } from '@/components/study/AudioLearning';
+import { ReadingWritingLearning } from '@/components/study/ReadingWritingLearning';
 import { useStudyBuddy } from '@/hooks/useStudyBuddy';
 import { Note } from '@/types/study';
 import { useToast } from '@/hooks/use-toast';
@@ -94,10 +97,13 @@ const Index = () => {
 
       <div className="container px-4 py-6">
         <Tabs defaultValue="chat" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 max-w-md mx-auto">
-            <TabsTrigger value="chat"><MessageSquare size={16} className="mr-2" />Chat</TabsTrigger>
-            <TabsTrigger value="study"><BookOpen size={16} className="mr-2" />Study</TabsTrigger>
-            <TabsTrigger value="notes"><Upload size={16} className="mr-2" />Notes</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-6 max-w-2xl mx-auto">
+            <TabsTrigger value="chat"><MessageSquare size={16} className="mr-1" />Chat</TabsTrigger>
+            <TabsTrigger value="study"><BookOpen size={16} className="mr-1" />Study</TabsTrigger>
+            <TabsTrigger value="visual"><Eye size={16} className="mr-1" />Visual</TabsTrigger>
+            <TabsTrigger value="audio"><Headphones size={16} className="mr-1" />Audio</TabsTrigger>
+            <TabsTrigger value="writing"><PenTool size={16} className="mr-1" />Writing</TabsTrigger>
+            <TabsTrigger value="notes"><Upload size={16} className="mr-1" />Notes</TabsTrigger>
           </TabsList>
 
           <TabsContent value="chat">
@@ -125,6 +131,18 @@ const Index = () => {
 
           <TabsContent value="study">
             <TopicGenerator />
+          </TabsContent>
+
+          <TabsContent value="visual">
+            <VisualLearning />
+          </TabsContent>
+
+          <TabsContent value="audio">
+            <AudioLearning />
+          </TabsContent>
+
+          <TabsContent value="writing">
+            <ReadingWritingLearning />
           </TabsContent>
 
           <TabsContent value="notes">

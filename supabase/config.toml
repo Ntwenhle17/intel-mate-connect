@@ -1,1 +1,7 @@
 project_id = "devotyrquhborefvsgmx"
+
+[functions.study-buddy-chat]
+verify_jwt = false
+
+[functions.transcribe-audio]
+verify_jwt = false

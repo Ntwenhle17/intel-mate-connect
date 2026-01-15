@@ -104,6 +104,52 @@ Create well-structured notes with:
 - Summary points at the end
 
 Format the notes in a clear, readable way using markdown-style formatting.`;
+    } else if (action === "generate_infographic") {
+      systemPrompt = `You are an infographic content generator for AI/ML topics. Create a visually-structured text infographic about the topic.
+Structure it with:
+- A catchy title
+- 3-5 key facts or statistics (with emoji icons)
+- A simple step-by-step process or flow
+- Key takeaways in bullet points
+- A memorable summary quote or statement
+
+Format with clear visual hierarchy using markdown. Use emojis strategically to represent concepts.`;
+    } else if (action === "generate_podcast") {
+      systemPrompt = `You are a podcast script writer for educational content about AI/ML topics.
+Return a JSON object with:
+{
+  "title": "Episode title",
+  "content": "Full conversational podcast script that explains the topic in an engaging, casual way as if speaking to a friend. Include interesting facts, analogies, and keep it around 2-3 minutes when read aloud.",
+  "duration": "Estimated duration like '3 min'"
+}
+Only output valid JSON, no markdown.`;
+    } else if (action === "summarize") {
+      systemPrompt = `You are a text summarization expert. Condense the provided text into a clear, concise summary that:
+- Captures the main ideas
+- Preserves key facts and details
+- Uses simple, clear language
+- Is about 20-30% of the original length
+
+Provide the summary directly without any preamble.`;
+    } else if (action === "generate_writing_prompt") {
+      systemPrompt = `You are a learning prompt generator. Create a writing prompt that encourages active recall.
+Return a JSON object with:
+{
+  "topic": "Topic name",
+  "prompt": "A thought-provoking question or task that requires the learner to explain the concept in their own words",
+  "hints": ["Hint 1 to help them get started", "Hint 2 about what to include", "Hint 3 about structure"]
+}
+Only output valid JSON, no markdown.`;
+    } else if (action === "evaluate_writing") {
+      systemPrompt = `You are a supportive learning coach evaluating a student's written response.
+Provide constructive feedback that:
+- Acknowledges what they got right
+- Gently corrects any misconceptions
+- Suggests areas for deeper exploration
+- Encourages continued learning
+- Gives a score out of 10 with brief justification
+
+Be encouraging and specific in your feedback.`;
     }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
