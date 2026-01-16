@@ -16,10 +16,10 @@ import { VisualLearning } from '@/components/study/VisualLearning';
 import { AudioLearning } from '@/components/study/AudioLearning';
 import { ReadingWritingLearning } from '@/components/study/ReadingWritingLearning';
 import { LanguageSelector, SOUTH_AFRICAN_LANGUAGES } from '@/components/study/LanguageSelector';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { useStudyBuddy } from '@/hooks/useStudyBuddy';
 import { Note } from '@/types/study';
 import { useToast } from '@/hooks/use-toast';
-
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -92,10 +92,11 @@ const Index = () => {
             <Brain className="h-8 w-8 text-primary" />
             <span className="text-xl font-bold">Study Buddy</span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <div className="w-48 hidden sm:block">
               <LanguageSelector value={selectedLanguage} onChange={setSelectedLanguage} />
             </div>
+            <ThemeToggle />
             <Button variant="ghost" size="sm" onClick={handleSignOut}>
               <LogOut size={16} className="mr-2" /> Sign Out
             </Button>
