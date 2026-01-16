@@ -1,8 +1,17 @@
 import { useState, useCallback } from 'react';
 import { Message, Quiz, Flashcard, MindMapNode } from '@/types/study';
 import { getLanguagePrompt } from '@/components/study/LanguageSelector';
+import { supabase } from '@/integrations/supabase/client';
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/study-buddy-chat`;
+
+const getAuthHeader = async (): Promise<string> => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session?.access_token) {
+    return `Bearer ${session.access_token}`;
+  }
+  throw new Error('Not authenticated');
+};
 
 interface PodcastLesson {
   title: string;
@@ -30,11 +39,12 @@ export const useStudyBuddy = (language: string = 'en') => {
     let assistantSoFar = '';
 
     try {
+      const authHeader = await getAuthHeader();
       const resp = await fetch(CHAT_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: authHeader,
         },
         body: JSON.stringify({
           messages: [...messages, userMsg],
@@ -99,11 +109,12 @@ export const useStudyBuddy = (language: string = 'en') => {
   const generateQuiz = useCallback(async (topic: string): Promise<Quiz | null> => {
     setIsLoading(true);
     try {
+      const authHeader = await getAuthHeader();
       const resp = await fetch(CHAT_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: authHeader,
         },
         body: JSON.stringify({
           messages: [{ role: 'user', content: `Generate a quiz about: ${topic}` }],
@@ -135,11 +146,12 @@ export const useStudyBuddy = (language: string = 'en') => {
   const generateFlashcards = useCallback(async (topic: string): Promise<Flashcard[] | null> => {
     setIsLoading(true);
     try {
+      const authHeader = await getAuthHeader();
       const resp = await fetch(CHAT_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: authHeader,
         },
         body: JSON.stringify({
           messages: [{ role: 'user', content: `Generate flashcards about: ${topic}` }],
@@ -171,11 +183,12 @@ export const useStudyBuddy = (language: string = 'en') => {
   const generateMindMap = useCallback(async (topic: string): Promise<{ title: string; nodes: MindMapNode[] } | null> => {
     setIsLoading(true);
     try {
+      const authHeader = await getAuthHeader();
       const resp = await fetch(CHAT_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: authHeader,
         },
         body: JSON.stringify({
           messages: [{ role: 'user', content: `Generate a mind map about: ${topic}` }],
@@ -207,11 +220,12 @@ export const useStudyBuddy = (language: string = 'en') => {
   const generateNotes = useCallback(async (topic: string): Promise<string | null> => {
     setIsLoading(true);
     try {
+      const authHeader = await getAuthHeader();
       const resp = await fetch(CHAT_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: authHeader,
         },
         body: JSON.stringify({
           messages: [{ role: 'user', content: `Generate comprehensive study notes about: ${topic}` }],
@@ -238,11 +252,12 @@ export const useStudyBuddy = (language: string = 'en') => {
   const generateInfographic = useCallback(async (topic: string): Promise<string | null> => {
     setIsLoading(true);
     try {
+      const authHeader = await getAuthHeader();
       const resp = await fetch(CHAT_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: authHeader,
         },
         body: JSON.stringify({
           messages: [{ role: 'user', content: `Create an infographic summary about: ${topic}` }],
@@ -269,11 +284,12 @@ export const useStudyBuddy = (language: string = 'en') => {
   const generatePodcast = useCallback(async (topic: string): Promise<PodcastLesson | null> => {
     setIsLoading(true);
     try {
+      const authHeader = await getAuthHeader();
       const resp = await fetch(CHAT_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: authHeader,
         },
         body: JSON.stringify({
           messages: [{ role: 'user', content: `Create a podcast-style lesson about: ${topic}` }],
@@ -308,11 +324,12 @@ export const useStudyBuddy = (language: string = 'en') => {
   const summarizeText = useCallback(async (text: string): Promise<string | null> => {
     setIsLoading(true);
     try {
+      const authHeader = await getAuthHeader();
       const resp = await fetch(CHAT_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: authHeader,
         },
         body: JSON.stringify({
           messages: [{ role: 'user', content: `Summarize the following text concisely:\n\n${text}` }],
@@ -337,11 +354,12 @@ export const useStudyBuddy = (language: string = 'en') => {
   const generateWritingPrompt = useCallback(async (topic: string): Promise<WritingPrompt | null> => {
     setIsLoading(true);
     try {
+      const authHeader = await getAuthHeader();
       const resp = await fetch(CHAT_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: authHeader,
         },
         body: JSON.stringify({
           messages: [{ role: 'user', content: `Create a writing prompt about: ${topic}` }],
@@ -380,11 +398,12 @@ export const useStudyBuddy = (language: string = 'en') => {
   const evaluateWriting = useCallback(async (prompt: string, response: string): Promise<string | null> => {
     setIsLoading(true);
     try {
+      const authHeader = await getAuthHeader();
       const resp = await fetch(CHAT_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: authHeader,
         },
         body: JSON.stringify({
           messages: [{ 
