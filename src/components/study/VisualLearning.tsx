@@ -8,7 +8,7 @@ import { useStudyBuddy } from '@/hooks/useStudyBuddy';
 import { MindMapView } from './MindMapView';
 import { MindMapNode } from '@/types/study';
 import { jsPDF } from 'jspdf';
-
+import DOMPurify from 'dompurify';
 const COLOR_TAGS = [
   { name: 'Important', color: 'hsl(0, 84%, 60%)' },
   { name: 'Definition', color: 'hsl(221, 83%, 53%)' },
@@ -124,7 +124,7 @@ export const VisualLearning = ({ language = 'en' }: VisualLearningProps) => {
           <TabsContent value="infographic" className="mt-4">
             {infographic ? (
               <Card className="p-6 prose prose-sm max-w-none">
-                <div dangerouslySetInnerHTML={{ __html: infographic.replace(/\n/g, '<br/>') }} />
+                <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(infographic.replace(/\n/g, '<br/>')) }} />
               </Card>
             ) : (
               <div className="h-64 flex items-center justify-center text-muted-foreground border rounded-lg">
